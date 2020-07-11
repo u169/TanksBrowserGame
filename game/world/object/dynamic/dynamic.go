@@ -4,7 +4,7 @@ import "Tanks/game/world/object"
 
 type Dynamic interface {
 	object.Entity
-	Move(available func(int, int) bool, scale int)
+	Move(isBusied func(int, int) bool, scale int)
 }
 
 type Alive interface {

@@ -28,17 +28,13 @@ func (t *Tank) Coordinates() (int, int) {
 	return t.x, t.y
 }
 
-func (t *Tank) Move(available func(int, int) bool, scale int) {
+func (t *Tank) Move(isBusied func(int, int) bool, scale int) {
 	nextX, nextY := t.getNextMoveCoordinates()
 
-	isXOutOfRange := nextX > 0 && nextX < scale
-	isYOutOfRange := nextY > 0 && nextY < scale
+	isXOutOfRange := (nextX < 0) || (nextX >= scale)
+	isYOutOfRange := (nextY < 0) || (nextY >= scale)
 
-	if isXOutOfRange || isYOutOfRange {
-		return
-	}
-
-	if !available(nextX, nextY) {
+	if isXOutOfRange || isYOutOfRange || isBusied(nextX, nextY) {
 		return
 	}
 

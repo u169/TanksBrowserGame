@@ -2,6 +2,7 @@ package world
 
 import (
 	"Tanks/game/world/object"
+	"Tanks/game/world/object/dynamic"
 	"Tanks/game/world/object/dynamic/transport"
 	"Tanks/game/world/object/static"
 	"errors"
@@ -10,13 +11,14 @@ import (
 	"math/rand"
 )
 
-const decorScalePart = 3
+const decorScalePart = 2
 const decorScaleDeviation = 0.05
 
 type World struct {
 	Tic      int
 	Scale    int
-	Entities []object.Entity
+	statics  []static.Static
+	Dynamics []dynamic.Dynamic
 }
 
 func NewWorld(scale int) *World {
@@ -25,7 +27,9 @@ func NewWorld(scale int) *World {
 	}
 
 	_, _ = w.CreateTransport("tank")
+	fmt.Println("Tank generated")
 	w.genDecor()
+	fmt.Println("Decor generated")
 	return &w
 }
 
@@ -42,7 +46,7 @@ func (w *World) CreateTransport(t string) (transport.Transport, error) {
 		return nil, errors.New(msg)
 	}
 
-	w.Entities = append(w.Entities, p)
+	w.Dynamics = append(w.Dynamics, p)
 	return p, nil
 }
 
@@ -54,14 +58,33 @@ func (w *World) genDecor() {
 	}
 
 	for _, stone := range stones {
-		w.Entities = append(w.Entities, stone)
+		w.statics = append(w.statics, stone)
 	}
 }
 
 func (w *World) getDecorRange() int {
+	var max, min float64
+
+	maxLimit := math.Pow(float64(w.Scale - 2), 2)
+	minLimit := 0
+
 	preVolume := math.Round(decorScalePart * float64(w.Scale))
+	if preVolume > maxLimit {
+		preVolume = maxLimit
+	}
 	deviation := math.Round(decorScaleDeviation * float64(w.Scale))
-	max, min := preVolume + deviation, preVolume - deviation
+	if deviation == 0 {
+		return 1
+	}
+
+	max, min = preVolume + deviation, preVolume - deviation
+	if max > maxLimit {
+		max = maxLimit
+	}
+	if min < 0 {
+		min = float64(minLimit)
+	}
+
 	volume := rand.Intn(int(max) - int(min)) + int(min)
 	return volume
 }
@@ -71,27 +94,45 @@ func (w *World) createStone() *static.Stone {
 	return static.NewStone(x, y)
 }
 
-func (w *World) isDotBusied(x int, y int) bool {
-	for _, e := range w.Entities {
-		ex, ey := e.Coordinates()
-		if ex == x && ey == y {
+func (w *World) IsDotBusied(x int, y int) bool {
+	for _, s := range w.getEntities() {
+		if isDotBusied(x, y, s) {
 			return true
 		}
 	}
 	return false
 }
 
+func isDotBusied(x int, y int, e object.Entity) bool {
+	ex, ey := e.Coordinates()
+	if ex == x && ey == y {
+		return true
+	}
+	return false
+}
+
 func (w *World) getFreeCoordinates() (int, int) {
 	var x, y int
-	min, max := 1, w.Scale - 1
+	min, max := 0, w.Scale
 	for {
 		x = rand.Intn(max-min) + min
 		y = rand.Intn(max-min) + min
-		if !w.isDotBusied(x, y) {
+		if !w.IsDotBusied(x, y) {
 			break
 		}
 	}
 	return x, y
+}
+
+func (w *World) getEntities() []object.Entity {
+	var entities []object.Entity
+	for _, v := range w.statics {
+		entities = append(entities, v)
+	}
+	for _, v := range w.Dynamics {
+		entities = append(entities, v)
+	}
+	return entities
 }
 
 func (w *World) Draw() {
@@ -101,8 +142,7 @@ func (w *World) Draw() {
 	for i := 0; i < w.Scale; i++ {
 		area[i] = make([]int, w.Scale)
 	}
-
-	for _, e := range w.Entities {
+	for _, e := range w.getEntities() {
 		x, y := e.Coordinates()
 		switch e.(type) {
 		case transport.Transport:
@@ -112,7 +152,7 @@ func (w *World) Draw() {
 		default:
 			entityIndex = 0
 		}
-		area[x][y] = entityIndex
+		area[y][x] = entityIndex
 	}
 
 	for _, i := range area {
