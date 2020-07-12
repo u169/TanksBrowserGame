@@ -27,8 +27,8 @@
             * [ ] destroy
     * [ ] world entities fabric
 * [ ] controller
-    * [ ] start game
-    * [ ] update state queue
+    * [x] start game
+    * [x] update state q̶u̶e̶u̶e̶
     * [ ] get state
 * [ ] view (entry logic)
     * [ ] socket
