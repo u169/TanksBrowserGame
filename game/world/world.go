@@ -15,15 +15,14 @@ const decorScalePart = 2
 const decorScaleDeviation = 0.05
 
 type World struct {
-	Tic      int
-	Scale    int
+	scale    int
 	statics  []static.Static
-	Dynamics []dynamic.Dynamic
+	dynamics []dynamic.Dynamic
 }
 
 func NewWorld(scale int) *World {
 	w := World{
-		Scale:    scale,
+		scale: scale,
 	}
 
 	_, _ = w.CreateTransport("tank")
@@ -46,7 +45,7 @@ func (w *World) CreateTransport(t string) (transport.Transport, error) {
 		return nil, errors.New(msg)
 	}
 
-	w.Dynamics = append(w.Dynamics, p)
+	w.dynamics = append(w.dynamics, p)
 	return p, nil
 }
 
@@ -65,14 +64,14 @@ func (w *World) genDecor() {
 func (w *World) getDecorRange() int {
 	var max, min float64
 
-	maxLimit := math.Pow(float64(w.Scale - 2), 2)
+	maxLimit := math.Pow(float64(w.scale- 2), 2)
 	minLimit := 0
 
-	preVolume := math.Round(decorScalePart * float64(w.Scale))
+	preVolume := math.Round(decorScalePart * float64(w.scale))
 	if preVolume > maxLimit {
 		preVolume = maxLimit
 	}
-	deviation := math.Round(decorScaleDeviation * float64(w.Scale))
+	deviation := math.Round(decorScaleDeviation * float64(w.scale))
 	if deviation == 0 {
 		return 1
 	}
@@ -113,7 +112,7 @@ func isDotBusied(x int, y int, e object.Entity) bool {
 
 func (w *World) getFreeCoordinates() (int, int) {
 	var x, y int
-	min, max := 0, w.Scale
+	min, max := 0, w.scale
 	for {
 		x = rand.Intn(max-min) + min
 		y = rand.Intn(max-min) + min
@@ -125,22 +124,30 @@ func (w *World) getFreeCoordinates() (int, int) {
 }
 
 func (w *World) getEntities() []object.Entity {
+
 	var entities []object.Entity
 	for _, v := range w.statics {
 		entities = append(entities, v)
 	}
-	for _, v := range w.Dynamics {
+	for _, v := range w.dynamics {
 		entities = append(entities, v)
 	}
 	return entities
 }
 
+func (w *World) Tic() {
+	for _, d := range w.dynamics {
+		d.Move(w.IsDotBusied, w.scale)
+	}
+}
+
+//TODO remove
 func (w *World) Draw() {
 	var entityIndex int
 	var symbols = []string{"□", "▦", "■"}
-	area := make([][]int, w.Scale)
-	for i := 0; i < w.Scale; i++ {
-		area[i] = make([]int, w.Scale)
+	area := make([][]int, w.scale)
+	for i := 0; i < w.scale; i++ {
+		area[i] = make([]int, w.scale)
 	}
 	for _, e := range w.getEntities() {
 		x, y := e.Coordinates()

@@ -16,19 +16,16 @@ func NewGame(worldScale int) *Game {
 }
 
 func (g *Game) Start() {
-	iterations := 3
 	fmt.Println("Game Started")
-	g.w.Draw()
-
-	for i:=0; i < iterations; i++ {
-		fmt.Println()
-		g.doIteration()
-		g.w.Draw()
-	}
+	g.testProcess(3)
 }
 
-func (g *Game) doIteration() {
-	for _, d := range g.w.Dynamics {
-		d.Move(g.w.IsDotBusied, g.w.Scale)
+//TODO remove
+func (g *Game) testProcess(tics int) {
+	g.w.Draw()
+	for i:=0; i < tics; i++ {
+		fmt.Println()
+		g.w.Tic()
+		g.w.Draw()
 	}
 }
