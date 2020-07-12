@@ -9,9 +9,9 @@ type Game struct {
 	w world.World
 }
 
-func NewGame(worldScale int) *Game {
+func NewGame(worldScale int, playersInfo map[string]string) *Game {
 	return &Game{
-		w: *world.NewWorld(worldScale),
+		w: *world.NewWorld(worldScale, playersInfo),
 	}
 }
 
@@ -20,10 +20,17 @@ func (g *Game) Start() {
 	g.testProcess(3)
 }
 
+func (g *Game) Update(playerId string, vector int, shoot bool) {
+	g.w.Update(playerId, vector, shoot)
+}
+
 //TODO remove
 func (g *Game) testProcess(tics int) {
 	g.w.Draw()
-	for i:=0; i < tics; i++ {
+
+	var i int
+
+	for i=0; i < tics; i++ {
 		fmt.Println()
 		g.w.Tic()
 		g.w.Draw()

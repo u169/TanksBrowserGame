@@ -1,7 +1,6 @@
 package transport
 
 type Tank struct {
-	id string
 	x int
 	y int
 	hp int
@@ -9,19 +8,14 @@ type Tank struct {
 	vector int
 }
 
-func NewTank(id string, x int, y int) *Tank {
+func NewTank(x int, y int) *Tank {
 	return &Tank{
-		id:   id,
 		x:    x,
 		y:    y,
 		hp:   100,
 		ammo: 5,
 		vector: 0, //TODO remove
 	}
-}
-
-func (t *Tank) GetId() string {
-	return t.id
 }
 
 func (t *Tank) Coordinates() (int, int) {
@@ -57,6 +51,10 @@ func (t *Tank) getNextMoveCoordinates() (int, int) {
 	}
 
 	return t.x + dx, t.y + dy
+}
+
+func (t *Tank) Rotate(vector int) {
+	t.vector = vector
 }
 
 func (t *Tank) GetHP() int {

@@ -1,19 +1,31 @@
 package main
 
 import (
-	"Tanks/game"
+	"Tanks/controller"
 	"fmt"
-	"math/rand"
 	"time"
 )
 
+const testGameId = "testGameId"
+const testGameScale = 10
+const testPlayerId = "testPlayerId"
+const testPlayerTransportType = "tank"
+
 func main() {
-	fmt.Println("Started")
+	fmt.Println("Started main")
 
-	rand.Seed(time.Now().UTC().UnixNano())
+	mController := controller.NewController()
+	testGame(mController)
 
-	worldScale := 10
+	time.Sleep(time.Second) //TODO remove
+}
 
-	g := game.NewGame(worldScale)
-	g.Start()
+func testGame(c *controller.Controller) {
+	c.CreateGame(
+		testGameId,
+		map[string]string{
+			testPlayerId: testPlayerTransportType,
+		},
+		testGameScale)
+	c.StartGame(testGameId)
 }

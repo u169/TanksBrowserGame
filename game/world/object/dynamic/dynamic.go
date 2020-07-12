@@ -5,6 +5,7 @@ import "Tanks/game/world/object"
 type Dynamic interface {
 	object.Entity
 	Move(isBusied func(int, int) bool, scale int)
+	Rotate(vector int)
 }
 
 type Alive interface {
@@ -17,6 +18,6 @@ type Shooting interface {
 	EditAmmo(int)
 }
 
-type Player interface {
+type Identified interface {
 	GetId() string
 }
