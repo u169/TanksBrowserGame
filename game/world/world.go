@@ -48,14 +48,8 @@ func (w *World) genPlayers(playersInfo map[string]string) {
 }
 
 func (w *World) genDecor() {
-	var stones []*static.Stone
-
 	for i := 0; i < w.getDecorRange(); i++ {
-		stones = append(stones, w.createStone())
-	}
-
-	for _, stone := range stones {
-		w.statics = append(w.statics, stone)
+		w.statics = append(w.statics, w.createStone())
 	}
 }
 
@@ -105,7 +99,7 @@ func (w *World) getFreeCoordinates() (int, int) {
 }
 
 func (w *World) IsDotBusied(x int, y int) bool {
-	for _, s := range w.getEntities() {
+	for s := range w.getEntities() {
 		if isDotBusied(x, y, s) {
 			return true
 		}
@@ -121,21 +115,31 @@ func isDotBusied(x int, y int, e object.Entity) bool {
 	return false
 }
 
-func (w *World) getEntities() []object.Entity {
-
-	var entities []object.Entity
+func (w *World) getEntities() chan object.Entity {
+	transports := w.getTransports()
+	entities := make(chan object.Entity, len(transports) + len(w.statics))
+	defer close(entities)
 	for _, v := range w.statics {
-		entities = append(entities, v)
+		entities <- v
 	}
-	for _, p := range w.players {
-		entities = append(entities, p.GetTransport())
+	for t := range transports {
+		entities <- t
 	}
 	return entities
 }
 
-func (w *World) Tic() {
+func (w *World) getTransports() chan arsenal.Arsenal {
+	transports := make(chan arsenal.Arsenal, len(w.players))
+	defer close(transports)
 	for _, p := range w.players {
-		p.GetTransport().Move(w.IsDotBusied, w.scale)
+		transports <- p.GetTransport()
+	}
+	return transports
+}
+
+func (w *World) Tic() {
+	for t := range w.getTransports() {
+		t.Move(w.IsDotBusied, w.scale)
 	}
 }
 
@@ -152,7 +156,7 @@ func (w *World) Draw() {
 	for i := 0; i < w.scale; i++ {
 		area[i] = make([]int, w.scale)
 	}
-	for _, e := range w.getEntities() {
+	for e := range w.getEntities() {
 		x, y := e.Coordinates()
 		switch e.(type) {
 		case arsenal.Arsenal:
