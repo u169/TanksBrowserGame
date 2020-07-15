@@ -13,14 +13,17 @@ type Arsenal interface {
 	dynamic.Shooting
 }
 
-func NewTransport(tType string, x int, y int) (Arsenal, error) {
+func NewTransport(tType int, x int, y int) (Arsenal, error) {
+	var arsenal Arsenal
+	var err error
 	switch tType {
-	case tType:
-		return transport.NewTank(x, y), nil
+	case 0:
+		arsenal = transport.NewTank(x, y)
 	default:
 		errMsg := fmt.Sprintf("Invalid arsenal \"%s\"", tType)
-		return nil, errors.New(errMsg)
+		err = errors.New(errMsg)
 	}
+	return arsenal, err
 }
 
 

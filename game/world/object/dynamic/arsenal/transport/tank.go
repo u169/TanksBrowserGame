@@ -1,20 +1,22 @@
 package transport
 
 type Tank struct {
-	x int
-	y int
-	hp int
-	ammo int
+	x      int
+	y      int
+	hp     int
+	ammo   int
 	vector int
+	shoot  bool
 }
 
 func NewTank(x int, y int) *Tank {
 	return &Tank{
-		x:    x,
-		y:    y,
-		hp:   100,
-		ammo: 5,
-		vector: 0, //TODO remove
+		x:      x,
+		y:      y,
+		hp:     100,
+		ammo:   5,
+		vector: 0,
+		shoot:  false,
 	}
 }
 
@@ -55,6 +57,14 @@ func (t *Tank) getNextMoveCoordinates() (int, int) {
 
 func (t *Tank) Rotate(vector int) {
 	t.vector = vector
+}
+
+func (t *Tank) SetShoot(b bool) {
+	t.shoot = b
+}
+
+func (t *Tank) GetShoot() bool {
+	return t.shoot
 }
 
 func (t *Tank) GetHP() int {

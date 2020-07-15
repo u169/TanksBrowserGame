@@ -2,6 +2,7 @@ package controller
 
 import (
 	"Tanks/game"
+	"Tanks/utils"
 	"math/rand"
 	"time"
 )
@@ -22,14 +23,22 @@ func NewController() *Controller {
 	return &Controller{games: cGames}
 }
 
-func (c *Controller) CreateGame(
-	gameId string,
-	playersInfo map[string]string,
-	worldScale int) {
-	g := game.NewGame(
-		worldScale,
-		playersInfo)
+func (c *Controller) CreateGame(worldScale int, playersNumber int) string {
+	g := game.NewGame(worldScale, playersNumber)
+	gameId := utils.ObjectId(func() chan string {
+		stringKeys := make(chan string, len(c.games))
+		defer close(stringKeys)
+		for key := range c.games {
+			stringKeys <- key
+		}
+		return stringKeys
+	}())
 	c.games[gameId] = g
+	return gameId
+}
+
+func (c *Controller) AddPlayer(gameId string, arsenalType int) string {
+	return c.games[gameId].AddPlayer(arsenalType)
 }
 
 func (c *Controller) StartGame(gameId string) {

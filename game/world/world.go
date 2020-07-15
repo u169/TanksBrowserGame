@@ -1,9 +1,10 @@
 package world
 
 import (
+	"Tanks/game/player"
 	"Tanks/game/world/object"
+	"Tanks/game/world/object/dynamic"
 	"Tanks/game/world/object/dynamic/arsenal"
-	"Tanks/game/world/object/dynamic/arsenal/player"
 	"Tanks/game/world/object/static"
 	"fmt"
 	"math"
@@ -15,48 +16,44 @@ const decorScaleDeviation = 0.05
 
 type World struct {
 	scale    int
-	players  map[string]*player.Player
-	statics  []static.Static
+	entities []object.Entity
 }
 
-func NewWorld(scale int, playersInfo map[string]string) *World {
-	w := World{
-		scale: scale,
-	}
+func NewWorld(scale int) *World {
+	return &World{scale: scale}
+}
 
+func (w *World) GenerateObjects(arsenalPlayers map[int][]*player.Player) {
+	w.genDynamic(arsenalPlayers)
 	w.genDecor()
-	fmt.Println("Decor generated")
-	w.genDynamic(playersInfo)
-
-	return &w
 }
 
-func (w *World) genDynamic(playersInfo map[string]string) {
-	w.genPlayers(playersInfo)
+func (w *World) genDynamic(arsenalPlayers map[int][]*player.Player) {
+	w.genTransport(arsenalPlayers)
 	fmt.Println("Players generated")
 }
 
-func (w *World) genPlayers(playersInfo map[string]string) {
-	if w.players == nil {
-		w.players = map[string]*player.Player{}
-	}
-	for playerId, transportType := range playersInfo{
-		x, y := w.getFreeCoordinates()
-		p := player.NewPlayer(transportType, playerId, x, y)
-		w.players[playerId] = p
+func (w *World) genTransport(arsenalPlayers map[int][]*player.Player) {
+	for tType, tPlayers := range arsenalPlayers {
+		for _, tP := range tPlayers {
+			x, y := w.getFreeCoordinates()
+			transport, _ := arsenal.NewTransport(tType, x, y)
+			tP.SetTransport(transport)
+			w.entities = append(w.entities, transport)
+		}
 	}
 }
 
 func (w *World) genDecor() {
 	for i := 0; i < w.getDecorRange(); i++ {
-		w.statics = append(w.statics, w.createStone())
+		w.entities = append(w.entities, w.createStone())
 	}
 }
 
 func (w *World) getDecorRange() int {
 	var max, min float64
 
-	maxLimit := math.Pow(float64(w.scale- 2), 2)
+	maxLimit := math.Pow(float64(w.scale - 2), 2)
 	minLimit := 0
 
 	preVolume := math.Round(decorScalePart * float64(w.scale))
@@ -81,8 +78,7 @@ func (w *World) getDecorRange() int {
 }
 
 func (w *World) createStone() *static.Stone {
-	x, y := w.getFreeCoordinates()
-	return static.NewStone(x, y)
+	return static.NewStone(w.getFreeCoordinates())
 }
 
 func (w *World) getFreeCoordinates() (int, int) {
@@ -91,15 +87,15 @@ func (w *World) getFreeCoordinates() (int, int) {
 	for {
 		x = rand.Intn(max-min) + min
 		y = rand.Intn(max-min) + min
-		if !w.IsDotBusied(x, y) {
+		if !w.isDotBusied(x, y) {
 			break
 		}
 	}
 	return x, y
 }
 
-func (w *World) IsDotBusied(x int, y int) bool {
-	for s := range w.getEntities() {
+func (w *World) isDotBusied(x int, y int) bool {
+	for _, s := range w.entities {
 		if isDotBusied(x, y, s) {
 			return true
 		}
@@ -115,37 +111,14 @@ func isDotBusied(x int, y int, e object.Entity) bool {
 	return false
 }
 
-func (w *World) getEntities() chan object.Entity {
-	transports := w.getTransports()
-	entities := make(chan object.Entity, len(transports) + len(w.statics))
-	defer close(entities)
-	for _, v := range w.statics {
-		entities <- v
-	}
-	for t := range transports {
-		entities <- t
-	}
-	return entities
-}
-
-func (w *World) getTransports() chan arsenal.Arsenal {
-	transports := make(chan arsenal.Arsenal, len(w.players))
-	defer close(transports)
-	for _, p := range w.players {
-		transports <- p.GetTransport()
-	}
-	return transports
-}
-
 func (w *World) Tic() {
-	for t := range w.getTransports() {
-		t.Move(w.IsDotBusied, w.scale)
+	for _, entity := range w.entities {
+		switch entity.(type) {
+		case dynamic.Dynamic:
+			d := entity.(dynamic.Dynamic)
+			d.Move(w.isDotBusied, w.scale)
+		}
 	}
-}
-
-func (w *World) Update(playerId string, vector int, shoot bool) {
-	p := w.players[playerId]
-	p.GetTransport().Rotate(vector)
 }
 
 //TODO remove
@@ -156,7 +129,7 @@ func (w *World) Draw() {
 	for i := 0; i < w.scale; i++ {
 		area[i] = make([]int, w.scale)
 	}
-	for e := range w.getEntities() {
+	for _, e := range w.entities {
 		x, y := e.Coordinates()
 		switch e.(type) {
 		case arsenal.Arsenal:

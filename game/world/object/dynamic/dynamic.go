@@ -16,6 +16,8 @@ type Alive interface {
 type Shooting interface {
 	GetAmmo() int
 	EditAmmo(int)
+	SetShoot(bool)
+	GetShoot() bool
 }
 
 type Identified interface {

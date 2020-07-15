@@ -6,10 +6,9 @@ import (
 	"time"
 )
 
-const testGameId = "testGameId"
 const testGameScale = 10
-const testPlayerId = "testPlayerId"
-const testPlayerTransportType = "tank"
+const testGamePlayersNumber = 1
+const testPlayerTransportType = 0
 
 func main() {
 	fmt.Println("Started main")
@@ -21,11 +20,8 @@ func main() {
 }
 
 func testGame(c *controller.Controller) {
-	c.CreateGame(
-		testGameId,
-		map[string]string{
-			testPlayerId: testPlayerTransportType,
-		},
-		testGameScale)
-	c.StartGame(testGameId)
+	gameId := c.CreateGame(testGameScale, testGamePlayersNumber)
+	pId := c.AddPlayer(gameId, testPlayerTransportType)
+	fmt.Println(pId)
+	go c.StartGame(gameId)
 }
