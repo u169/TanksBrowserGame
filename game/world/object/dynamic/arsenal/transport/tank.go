@@ -1,27 +1,27 @@
 package transport
 
 type Tank struct {
-	x      int
-	y      int
-	hp     int
-	ammo   int
-	vector int
+	X      int `json:"x"`
+	Y      int `json:"y"`
+	HP     int `json:"hp"`
+	Ammo   int `json:"ammo"`
+	Vector int `json:"vector"`
 	shoot  bool
 }
 
 func NewTank(x int, y int) *Tank {
 	return &Tank{
-		x:      x,
-		y:      y,
-		hp:     100,
-		ammo:   5,
-		vector: 0,
+		X:      x,
+		Y:      y,
+		HP:     100,
+		Ammo:   5,
+		Vector: 0,
 		shoot:  false,
 	}
 }
 
 func (t *Tank) Coordinates() (int, int) {
-	return t.x, t.y
+	return t.X, t.Y
 }
 
 func (t *Tank) Move(isBusied func(int, int) bool, scale int) {
@@ -34,14 +34,14 @@ func (t *Tank) Move(isBusied func(int, int) bool, scale int) {
 		return
 	}
 
-	t.x = nextX
-	t.y = nextY
+	t.X = nextX
+	t.Y = nextY
 }
 
 func (t *Tank) getNextMoveCoordinates() (int, int) {
 	var dx, dy int
 
-	switch t.vector {
+	switch t.Vector {
 	case 0:
 		dy = -1
 	case 1:
@@ -52,11 +52,11 @@ func (t *Tank) getNextMoveCoordinates() (int, int) {
 		dx = -1
 	}
 
-	return t.x + dx, t.y + dy
+	return t.X + dx, t.Y + dy
 }
 
 func (t *Tank) Rotate(vector int) {
-	t.vector = vector
+	t.Vector = vector
 }
 
 func (t *Tank) SetShoot(b bool) {
@@ -68,17 +68,17 @@ func (t *Tank) GetShoot() bool {
 }
 
 func (t *Tank) GetHP() int {
-	return t.hp
+	return t.HP
 }
 
 func (t *Tank) EditHP(v int) {
-	t.hp += v
+	t.HP += v
 }
 
 func (t *Tank) GetAmmo() int {
-	return t.hp
+	return t.HP
 }
 
 func (t *Tank) EditAmmo(v int) {
-	t.hp += v
+	t.HP += v
 }

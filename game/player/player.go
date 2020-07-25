@@ -3,7 +3,8 @@ package player
 import "Tanks/game/world/object/dynamic/arsenal"
 
 type Player struct {
-	transport arsenal.Arsenal
+	Id string `json:"id"`
+	Transport arsenal.Arsenal `json:"transport"`
 }
 
 func NewPlayer() *Player {
@@ -11,10 +12,10 @@ func NewPlayer() *Player {
 }
 
 func (p *Player) SetTransport(a arsenal.Arsenal) {
-	p.transport = a
+	p.Transport = a
 }
 
 func (p *Player) Update(vector int, shoot bool) {
-	p.transport.Rotate(vector)
-	p.transport.SetShoot(shoot)
+	p.Transport.Rotate(vector)
+	p.Transport.SetShoot(shoot)
 }

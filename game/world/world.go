@@ -111,7 +111,7 @@ func isDotBusied(x int, y int, e object.Entity) bool {
 	return false
 }
 
-func (w *World) Tic() {
+func (w *World) Tick() {
 	for _, entity := range w.entities {
 		switch entity.(type) {
 		case dynamic.Dynamic:
